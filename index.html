@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proforma – Bill-Metz Auto Garage</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧾</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ ÉDITEUR (masqué à l'impression) ============ -->
+<aside class="editor no-print">
+  <header class="ed-head">
+    <h1>🧾 Proforma</h1>
+    <div class="ed-actions">
+      <button id="btnNew" type="button">Nouveau</button>
+      <button id="btnSave" type="button">Enregistrer</button>
+      <button id="btnPrint" type="button" class="primary">Imprimer / PDF</button>
+    </div>
+  </header>
+
+  <details class="card">
+    <summary>Entreprise &amp; logo</summary>
+    <label>Logo (image d'en-tête)
+      <input type="file" id="logoInput" accept="image/*">
+    </label>
+    <button type="button" id="btnLogoReset" class="link">Retirer le logo importé</button>
+    <label class="check"><input type="checkbox" id="co_showText"> Afficher le nom et l'adresse à côté du logo</label>
+    <label>Nom <input id="co_name"></label>
+    <label>Adresse <input id="co_address"></label>
+    <label>Téléphone <input id="co_phone"></label>
+    <label>Email <input id="co_email"></label>
+  </details>
+
+  <details class="card" open>
+    <summary>Client &amp; véhicule</summary>
+    <div class="grid2">
+      <label>N° Proforma <input id="number"></label>
+      <label>Date <input id="date" type="date"></label>
+    </div>
+    <label>Client <input id="client"></label>
+    <label>Attention de <input id="attention"></label>
+    <div class="grid3">
+      <label>Marque <input id="marque"></label>
+      <label>Model <input id="model"></label>
+      <label>Plaque <input id="plaque"></label>
+    </div>
+  </details>
+
+  <section class="card">
+    <h2>Articles</h2>
+    <table class="items-edit">
+      <thead><tr><th>QTÉ</th><th>Description</th><th>Prix unité</th><th></th></tr></thead>
+      <tbody id="itemsBody"></tbody>
+    </table>
+    <button type="button" id="btnAddRow">+ Ajouter une ligne</button>
+  </section>
+
+  <details class="card">
+    <summary>Bas de page (optionnel)</summary>
+    <label>Notes <textarea id="notes" rows="3" placeholder="Ex : Validité de l'offre : 15 jours"></textarea></label>
+    <label class="check"><input type="checkbox" id="showSignature"> Afficher une ligne de signature</label>
+  </details>
+
+  <details class="card">
+    <summary>Proformas enregistrées (<span id="savedCount">0</span>)</summary>
+    <ul id="savedList" class="saved"></ul>
+    <div class="ed-actions">
+      <button type="button" id="btnExport">Exporter (sauvegarde)</button>
+      <label class="btn-like">Importer <input type="file" id="importInput" accept="application/json" hidden></label>
+    </div>
+  </details>
+</aside>
+
+<!-- ============ FEUILLE A4 ============ -->
+<main class="preview">
+  <div class="sheet" id="sheet">
+    <div class="letterhead">
+      <img id="pv_logo" alt="" hidden>
+      <div class="co-text" id="pv_coText">
+        <div class="co-name" id="pv_coName"></div>
+        <div id="pv_coAddress"></div>
+        <div id="pv_coPhone"></div>
+        <div id="pv_coEmail"></div>
+      </div>
+    </div>
+
+    <hr class="rule">
+
+    <div class="meta">
+      <div>
+        <div><b>Client :</b> <span id="pv_client"></span></div>
+        <div><b>Attention de :</b> <span id="pv_attention"></span></div>
+      </div>
+      <div class="date"><b>Le <span id="pv_date"></span></b></div>
+    </div>
+
+    <div class="vehicle">
+      <div><b>Marque :</b> <span id="pv_marque"></span></div>
+      <div><b>Model:</b> <span id="pv_model"></span></div>
+      <div><b>Plaque :</b> <span id="pv_plaque"></span></div>
+    </div>
+
+    <table class="invoice">
+      <colgroup><col class="c-qty"><col class="c-desc"><col class="c-pu"><col class="c-amt"></colgroup>
+      <thead>
+        <tr class="title-row"><th colspan="2" class="l">Proforma</th><th colspan="2" class="c" id="pv_number"></th></tr>
+        <tr class="green"><th>QTE</th><th class="l">Description</th><th>Prix Unité</th><th>Montant (HTG)</th></tr>
+      </thead>
+      <tbody id="pv_items"></tbody>
+      <tfoot>
+        <tr class="total"><td></td><td class="c">Montant Total</td><td class="r" id="pv_totalPU"></td><td class="r" id="pv_total"></td></tr>
+      </tfoot>
+    </table>
+
+    <div class="notes" id="pv_notes"></div>
+    <div class="signature" id="pv_signature" hidden>
+      <div class="sig-line">Signature &amp; cachet</div>
+    </div>
+  </div>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+[hidden] { display: none !important; }
+:root {
+  --green: #92d050;
+  --ink: #111;
+  --ui-bg: #eef1f4;
+  --ui-card: #fff;
+  --ui-border: #d5dbe1;
+  --ui-accent: #1f4e9c;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--ui-bg);
+  color: #222;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ---------------- Éditeur ---------------- */
+.editor {
+  width: 440px;
+  flex-shrink: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 14px;
+  background: #f7f9fb;
+  border-right: 1px solid var(--ui-border);
+  position: sticky;
+  top: 0;
+}
+.ed-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.ed-head h1 { font-size: 20px; margin: 0; color: var(--ui-accent); }
+.ed-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.card {
+  background: var(--ui-card);
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+.card summary, .card h2 { font-weight: 600; font-size: 15px; cursor: pointer; margin: 0 0 6px; }
+.card h2 { cursor: default; }
+label { display: block; font-size: 12px; color: #555; margin: 6px 0; }
+label.check { display: flex; align-items: center; gap: 6px; color: #333; font-size: 13px; }
+input, textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 14px;
+  padding: 6px 8px;
+  border: 1px solid var(--ui-border);
+  border-radius: 5px;
+  margin-top: 2px;
+  color: #111;
+}
+input[type=checkbox] { width: auto; margin: 0; }
+input[type=file] { padding: 4px; font-size: 12px; }
+input:focus, textarea:focus { outline: 2px solid #9db8e6; border-color: var(--ui-accent); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+button, .btn-like {
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--ui-border);
+  background: #fff;
+  cursor: pointer;
+  color: #222;
+  display: inline-block;
+  margin: 0;
+}
+button:hover, .btn-like:hover { background: #f0f3f7; }
+button.primary { background: var(--ui-accent); color: #fff; border-color: var(--ui-accent); }
+button.primary:hover { background: #173d7c; }
+button.link { border: none; background: none; color: #b33; padding: 0; font-size: 12px; text-decoration: underline; }
+
+.items-edit { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.items-edit th { font-size: 11px; color: #666; text-align: left; font-weight: 600; padding: 2px; }
+.items-edit td { padding: 2px; }
+.items-edit input { margin: 0; padding: 5px 6px; }
+.items-edit td:nth-child(1) { width: 52px; }
+.items-edit td:nth-child(3) { width: 100px; }
+.items-edit td:nth-child(4) { width: 28px; }
+.items-edit .del { padding: 4px 7px; color: #b33; }
+
+.saved { list-style: none; padding: 0; margin: 0 0 8px; max-height: 260px; overflow-y: auto; }
+.saved li { display: flex; align-items: center; gap: 6px; padding: 5px 0; border-bottom: 1px solid #eee; font-size: 13px; }
+.saved li span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.saved li small { color: #777; }
+.saved li button { padding: 3px 7px; font-size: 12px; }
+
+/* ---------------- Aperçu A4 ---------------- */
+.preview {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+.sheet {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 14mm 15mm 16mm;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 2px 14px rgba(0,0,0,.18);
+  font-family: "Times New Roman", Times, serif;
+  font-size: 12.5pt;
+}
+
+.letterhead { display: flex; align-items: center; gap: 5mm; min-height: 30mm; }
+.letterhead img { max-height: 38mm; max-width: 100%; object-fit: contain; }
+.co-text { font-family: Calibri, "Segoe UI", Arial, sans-serif; font-size: 12pt; line-height: 1.3; }
+.co-name {
+  font-family: Impact, "Arial Narrow", "Arial Black", sans-serif;
+  font-size: 30pt;
+  letter-spacing: .5px;
+  line-height: 1.05;
+  margin-bottom: 1mm;
+}
+.co-text.hidden { display: none; }
+
+.rule { border: none; border-top: 1px solid #333; margin: 8mm 0 3mm; }
+
+.meta { display: flex; justify-content: space-between; gap: 10mm; line-height: 1.35; }
+.meta .date { white-space: nowrap; padding-right: 12mm; }
+.vehicle { margin: 4mm 0 2mm auto; width: fit-content; min-width: 60mm; margin-right: 22mm; line-height: 1.35; }
+
+/* Tableau */
+.invoice { width: 100%; border-collapse: collapse; font-size: 12pt; }
+.invoice col.c-qty { width: 11%; }
+.invoice col.c-desc { width: 38%; }
+.invoice col.c-pu { width: 25%; }
+.invoice col.c-amt { width: 26%; }
+.invoice th, .invoice td { border: 1px solid #000; padding: 1.2mm 2mm; vertical-align: middle; }
+.invoice .title-row th { font-weight: normal; border-bottom: 1.5px solid #000; }
+.invoice tr.green th {
+  background: var(--green);
+  font-weight: bold;
+  text-align: center;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.invoice tr.green th.l { text-align: left; }
+.invoice td.qty { text-align: right; }
+.invoice .l { text-align: left; }
+.invoice .c { text-align: center; }
+.invoice .r { text-align: right; white-space: nowrap; }
+.invoice tbody tr { break-inside: avoid; page-break-inside: avoid; }
+.invoice tr.total td { font-weight: bold; border-top: 2px solid #000; }
+.invoice { border: 2px solid #000; }
+
+.notes { margin-top: 6mm; white-space: pre-wrap; font-size: 11.5pt; }
+.notes:empty { display: none; }
+.signature { margin-top: 22mm; display: flex; justify-content: flex-end; }
+.sig-line { border-top: 1px solid #000; width: 65mm; text-align: center; padding-top: 1.5mm; font-size: 11pt; }
+
+/* ---------------- Mobile ---------------- */
+@media (max-width: 1100px) {
+  body { flex-direction: column; }
+  .editor { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--ui-border); }
+  .preview { padding: 12px; }
+}
+
+/* ---------------- Impression ---------------- */
+@page { size: A4; margin: 14mm 15mm 14mm; }
+@media print {
+  html, body { background: #fff; display: block; }
+  .no-print { display: none !important; }
+  .preview { padding: 0; overflow: visible; display: block; }
+  .sheet { box-shadow: none; margin: 0; padding: 0; min-height: auto; width: auto; zoom: 1 !important; }
+  .invoice thead { display: table-header-group; }
+}
