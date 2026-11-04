@@ -157,7 +157,8 @@
     tb.innerHTML = '';
     let totalPU = 0, total = 0;
     doc.items.forEach((it) => {
-      if (!String(it.desc || '').trim() && !parseNum(it.price)) return;
+      // Ligne ignorée : sans prix et sans vrai texte (vide ou seulement des chiffres)
+      if (!parseNum(it.price) && !/[A-Za-zÀ-ÿ]/.test(String(it.desc || ''))) return;
       const q = parseNum(it.qty), p = parseNum(it.price), amt = q * p;
       totalPU += p; total += amt;
       const tr = document.createElement('tr');
@@ -265,6 +266,7 @@
     document.title = fileName();
     const restore = () => { document.title = old; window.removeEventListener('afterprint', restore); };
     window.addEventListener('afterprint', restore);
+    preparePrint();
     window.print();
     setTimeout(restore, 3000);
   }
@@ -281,12 +283,14 @@
     rows.forEach((r) => r.remove());
     const pages = [first];
     let page = first, body = tbody;
+    const bodies = [tbody];
     const newPage = () => {
       page = document.createElement('div');
       page.className = 'sheet pdf-sheet';
       const t = table.cloneNode(false);
       [...table.children].forEach((ch) => { if (ch.tagName !== 'TBODY') t.appendChild(ch.cloneNode(true)); });
       body = document.createElement('tbody');
+      bodies.push(body);
       t.appendChild(body);
       page.appendChild(t);
       host.appendChild(page);
@@ -296,17 +300,60 @@
       body.appendChild(r);
       if (page.offsetHeight > MAX && body.rows.length > 1) { r.remove(); newPage(); body.appendChild(r); }
     });
-    tail.forEach((el) => {
-      page.appendChild(el);
-      if (page.offsetHeight > MAX) {
-        el.remove();
+    // Notes + signature : si elles ne tiennent pas, les derniers articles et le total
+    // passent avec elles sur la page suivante (la signature n'est jamais seule).
+    tail.forEach((el) => page.appendChild(el));
+    if (tail.length && page.offsetHeight > MAX) {
+      tail.forEach((el) => el.remove());
+      const k = Math.min(4, body.rows.length - 1); // 3 derniers articles + total
+      const moved = k > 0 ? [...body.rows].slice(-k) : [];
+      if (moved.length) {
+        moved.forEach((r) => r.remove());
+        newPage();
+        moved.forEach((r) => body.appendChild(r));
+      } else {
         page = document.createElement('div');
         page.className = 'sheet pdf-sheet';
         host.appendChild(page); pages.push(page);
-        page.appendChild(el);
       }
-    });
+      tail.forEach((el) => page.appendChild(el));
+    }
+    // Le total ne doit jamais être seul : la dernière page du tableau reçoit
+    // au moins 3 articles + le total (pris à la fin de la page précédente).
+    if (bodies.length > 1) {
+      const last = bodies[bodies.length - 1], prev = bodies[bodies.length - 2];
+      const need = Math.min(4 - last.rows.length, prev.rows.length - 1);
+      if (need > 0) {
+        [...prev.rows].slice(-need).reverse().forEach((r) => last.insertBefore(r, last.firstChild));
+      }
+    }
     return pages;
+  }
+
+  // Construit les pages A4 dans un conteneur donné (utilisé pour le PDF et l'impression)
+  function buildPages(host) {
+    const copy = $('sheet').cloneNode(true);
+    copy.removeAttribute('id'); copy.style.zoom = ''; copy.classList.add('pdf-sheet');
+    copy.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
+    host.appendChild(copy);
+    return paginate(copy, host);
+  }
+
+  // Impression navigateur : on imprime les mêmes pages que le PDF
+  function preparePrint() {
+    cleanupPrint();
+    $('sheet').style.zoom = '';
+    const host = document.createElement('div');
+    host.className = 'pdf-measure';
+    document.body.appendChild(host);
+    buildPages(host);
+    host.className = 'print-pages';
+    document.body.classList.add('printing');
+  }
+  function cleanupPrint() {
+    document.querySelectorAll('.print-pages').forEach((el) => el.remove());
+    document.body.classList.remove('printing');
+    fitPreview();
   }
 
   // PDF généré à partir d'une copie de la feuille à taille A4 fixe :
@@ -318,17 +365,13 @@
     busy = true;
     const btn = $('btnPdf'); const label = btn.textContent;
     btn.textContent = 'Création du PDF…'; btn.disabled = true;
-    const copy = $('sheet').cloneNode(true);
-    copy.removeAttribute('id'); copy.style.zoom = ''; copy.classList.add('pdf-sheet');
-    copy.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
     const host = document.createElement('div');
     host.className = 'pdf-measure';
-    host.appendChild(copy);
     document.body.appendChild(host);
     try {
-      const imgs = [...copy.querySelectorAll('img')].filter((i) => !i.hidden);
+      const imgs = [...document.querySelectorAll('#sheet img')].filter((i) => !i.hidden);
       await Promise.all(imgs.map((i) => (i.decode ? i.decode().catch(() => {}) : null)));
-      const pages = paginate(copy, host);
+      const pages = buildPages(host);
       const opt = {
         margin: [14, 15, 14, 15],
         filename: fileName() + '.pdf',
@@ -438,8 +481,8 @@
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') { e.preventDefault(); printDoc(); }
   });
   window.addEventListener('resize', fitPreview);
-  window.addEventListener('beforeprint', () => { $('sheet').style.zoom = ''; });
-  window.addEventListener('afterprint', fitPreview);
+  window.addEventListener('beforeprint', preparePrint);
+  window.addEventListener('afterprint', cleanupPrint);
 
   // ---------- Démarrage ----------
   applyLogo();

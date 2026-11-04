@@ -172,7 +172,7 @@ button.link { border: none; background: none; color: #b33; padding: 0; font-size
 .signature { margin-top: 8mm; display: flex; justify-content: flex-end; break-inside: avoid; page-break-inside: avoid; }
 .sig-box { width: 70mm; text-align: center; }
 .sig-title { font-weight: bold; font-size: 12pt; }
-.sig-space { height: 18mm; }
+.sig-space { height: 15mm; }
 .sig-line { border-top: 1px solid #000; }
 .sig-name { padding-top: 1.5mm; font-size: 11.5pt; font-weight: bold; }
 .sig-role { font-size: 10.5pt; }
@@ -193,7 +193,13 @@ button.link { border: none; background: none; color: #b33; padding: 0; font-size
   .preview { padding: 0; overflow: visible; display: block; }
   .sheet { box-shadow: none; margin: 0; padding: 0; min-height: auto; width: 180mm; zoom: 1 !important; }
   .invoice thead { display: table-header-group; }
+  /* Pages préparées (même découpage que le PDF) : on n'imprime qu'elles */
+  body.printing .preview { display: none !important; }
+  .print-pages .sheet { break-after: page; page-break-after: always; }
+  .print-pages .sheet:last-child { break-after: auto; page-break-after: auto; }
 }
+.print-pages { display: none; }
+@media print { .print-pages { display: block; } }
 
 /* ---------------- Génération PDF (copie hors écran, taille fixe A4) ---------------- */
 .sheet.pdf-sheet { box-shadow: none; margin: 0; padding: 0; min-height: 0; width: 180mm; zoom: 1 !important; }
