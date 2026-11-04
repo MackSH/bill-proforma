@@ -82,7 +82,7 @@
   }
 
   // ---------- Formulaire ----------
-  const docFields = ['number', 'date', 'client', 'attention', 'marque', 'model', 'plaque', 'notes'];
+  const docFields = ['number', 'date', 'client', 'attention', 'marque', 'model', 'plaque', 'notes', 'signer', 'signerTitle'];
   const coFields = ['name', 'address', 'phone', 'email'];
 
   function fillForm() {
@@ -150,7 +150,8 @@
     text('pv_number', doc.number);
     text('pv_notes', doc.notes);
     $('pv_signature').hidden = !!doc.hideSignature;
-    text('pv_sigName', company.name);
+    text('pv_sigName', doc.signer);
+    text('pv_sigRole', doc.signerTitle);
 
     const tb = $('pv_items');
     tb.innerHTML = '';
@@ -172,8 +173,14 @@
       });
       tb.appendChild(tr);
     });
-    text('pv_totalPU', fmt(totalPU));
-    text('pv_total', fmt(total));
+    // Ligne du total : une seule fois, à la fin de la liste (pas répétée sur chaque page)
+    const tr = document.createElement('tr');
+    tr.className = 'total';
+    [['', ''], ['Montant Total', 'c'], [fmt(totalPU), 'r'], [fmt(total), 'r']].forEach(([v, cls]) => {
+      const td = document.createElement('td');
+      td.className = cls; td.textContent = v; tr.appendChild(td);
+    });
+    tb.appendChild(tr);
   }
 
   let draftTimer;
@@ -231,7 +238,7 @@
     doc = {
       id: null, number: nextNumber(d), date: d,
       client: '', attention: '', marque: '', model: '', plaque: '', notes: doc.notes || '',
-      hideSignature: !!doc.hideSignature, items: [{ qty: 1, desc: '', price: '' }],
+      hideSignature: !!doc.hideSignature, signer: doc.signer || '', signerTitle: doc.signerTitle || '', items: [{ qty: 1, desc: '', price: '' }],
     };
     fillForm(); update();
   }
@@ -262,6 +269,46 @@
     setTimeout(restore, 3000);
   }
 
+  // Découpe la feuille en pages A4 : lignes entières, en-tête du tableau répété,
+  // total uniquement à la fin, signature jamais coupée.
+  function paginate(first, host) {
+    const MAX = 266 * 96 / 25.4; // hauteur utile d'une page A4 (297 - marges) en px
+    const table = first.querySelector('table.invoice');
+    const tbody = table.tBodies[0];
+    const rows = [...tbody.rows];
+    const tail = [...first.querySelectorAll('.notes, .signature')];
+    tail.forEach((el) => el.remove());
+    rows.forEach((r) => r.remove());
+    const pages = [first];
+    let page = first, body = tbody;
+    const newPage = () => {
+      page = document.createElement('div');
+      page.className = 'sheet pdf-sheet';
+      const t = table.cloneNode(false);
+      [...table.children].forEach((ch) => { if (ch.tagName !== 'TBODY') t.appendChild(ch.cloneNode(true)); });
+      body = document.createElement('tbody');
+      t.appendChild(body);
+      page.appendChild(t);
+      host.appendChild(page);
+      pages.push(page);
+    };
+    rows.forEach((r) => {
+      body.appendChild(r);
+      if (page.offsetHeight > MAX && body.rows.length > 1) { r.remove(); newPage(); body.appendChild(r); }
+    });
+    tail.forEach((el) => {
+      page.appendChild(el);
+      if (page.offsetHeight > MAX) {
+        el.remove();
+        page = document.createElement('div');
+        page.className = 'sheet pdf-sheet';
+        host.appendChild(page); pages.push(page);
+        page.appendChild(el);
+      }
+    });
+    return pages;
+  }
+
   // PDF généré à partir d'une copie de la feuille à taille A4 fixe :
   // le résultat est identique quel que soit l'écran (téléphone, tablette, ordinateur).
   let busy = false;
@@ -274,21 +321,33 @@
     const copy = $('sheet').cloneNode(true);
     copy.removeAttribute('id'); copy.style.zoom = ''; copy.classList.add('pdf-sheet');
     copy.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
+    const host = document.createElement('div');
+    host.className = 'pdf-measure';
+    host.appendChild(copy);
+    document.body.appendChild(host);
     try {
       const imgs = [...copy.querySelectorAll('img')].filter((i) => !i.hidden);
       await Promise.all(imgs.map((i) => (i.decode ? i.decode().catch(() => {}) : null)));
-      await html2pdf().set({
+      const pages = paginate(copy, host);
+      const opt = {
         margin: [14, 15, 14, 15],
         filename: fileName() + '.pdf',
         image: { type: 'jpeg', quality: 0.97 },
         html2canvas: { scale: 3, useCORS: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['css'], avoid: ['tr', '.signature', '.meta', '.vehicle'] },
-      }).from(copy).save();
+        pagebreak: { mode: [] },
+      };
+      // Chaque page est rendue séparément : aucune ligne n'est coupée entre deux pages
+      let worker = html2pdf().set(opt).from(pages[0]).toPdf();
+      pages.slice(1).forEach((pg) => {
+        worker = worker.get('pdf').then((pdf) => { pdf.addPage(); }).from(pg).toContainer().toCanvas().toPdf();
+      });
+      await worker.save();
     } catch (err) {
       console.error(err);
       alert('Erreur lors de la création du PDF : ' + err.message);
     } finally {
+      host.remove();
       btn.textContent = label; btn.disabled = false; busy = false;
     }
   }

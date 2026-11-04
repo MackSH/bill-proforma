@@ -59,9 +59,11 @@
   </section>
 
   <details class="card">
-    <summary>Bas de page (optionnel)</summary>
+    <summary>Signature &amp; bas de page</summary>
     <label>Notes <textarea id="notes" rows="3" placeholder="Ex : Validité de l'offre : 15 jours"></textarea></label>
     <label class="check"><input type="checkbox" id="showSignature"> Afficher l'espace de signature</label>
+    <label>Nom du signataire <input id="signer" placeholder="Ex : Bill Metz"></label>
+    <label>Fonction (optionnel) <input id="signerTitle" placeholder="Ex : Directeur"></label>
   </details>
 
   <details class="card">
@@ -110,9 +112,6 @@
         <tr class="green"><th>QTE</th><th class="l">Description</th><th>Prix Unité</th><th>Montant (HTG)</th></tr>
       </thead>
       <tbody id="pv_items"></tbody>
-      <tfoot>
-        <tr class="total"><td></td><td class="c">Montant Total</td><td class="r" id="pv_totalPU"></td><td class="r" id="pv_total"></td></tr>
-      </tfoot>
     </table>
 
     <div class="notes" id="pv_notes"></div>
@@ -122,6 +121,7 @@
         <div class="sig-space"></div>
         <div class="sig-line"></div>
         <div class="sig-name" id="pv_sigName"></div>
+        <div class="sig-role" id="pv_sigRole"></div>
       </div>
     </div>
   </div>
