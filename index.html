@@ -26,7 +26,7 @@
       <input type="file" id="logoInput" accept="image/*">
     </label>
     <button type="button" id="btnLogoReset" class="link">Retirer le logo importé</button>
-    <label class="check"><input type="checkbox" id="co_showText"> Afficher le nom et l'adresse à côté du logo</label>
+    <label class="check"><input type="checkbox" id="co_showText"> Afficher l'adresse, le téléphone et l'email sous le logo</label>
     <label>Nom <input id="co_name"></label>
     <label>Adresse <input id="co_address"></label>
     <label>Téléphone <input id="co_phone"></label>
@@ -76,8 +76,8 @@
 <!-- ============ FEUILLE A4 ============ -->
 <main class="preview">
   <div class="sheet" id="sheet">
-    <div class="letterhead">
-      <img id="pv_logo" alt="" hidden>
+    <div class="letterhead" id="pv_letterhead">
+      <img id="pv_logo" alt="Logo" hidden>
       <div class="co-text" id="pv_coText">
         <div class="co-name" id="pv_coName"></div>
         <div id="pv_coAddress"></div>

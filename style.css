@@ -122,6 +122,20 @@ button.link { border: none; background: none; color: #b33; padding: 0; font-size
 }
 .co-text.hidden { display: none; }
 
+/* Avec logo (le logo contient déjà le nom) : coordonnées placées sous le nom,
+   alignées sur le début du texte « BILL-METZ », à droite de l'engrenage */
+.letterhead.has-logo { position: relative; display: block; width: 128mm; min-height: 0; }
+.letterhead.has-logo img { display: block; width: 100%; max-height: none; }
+.letterhead.has-logo .co-name { display: none; }
+.letterhead.has-logo .co-text {
+  position: absolute;
+  left: 30.8%;
+  top: 67%;
+  font-size: 11.5pt;
+  line-height: 1.22;
+  white-space: nowrap;
+}
+
 .rule { border: none; border-top: 1px solid #333; margin: 8mm 0 3mm; }
 
 .meta { display: flex; justify-content: space-between; gap: 10mm; line-height: 1.35; }

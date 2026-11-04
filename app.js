@@ -74,11 +74,11 @@
   function applyLogo() {
     const img = $('pv_logo');
     const custom = load(LS_LOGO, null);
-    if (custom) { img.src = custom; img.hidden = false; return; }
-    // logo.png dans le dépôt (s'il existe)
-    img.onerror = () => { img.hidden = true; };
-    img.onload = () => { img.hidden = false; };
-    img.src = 'logo.png?v=1';
+    const head = $('pv_letterhead');
+    img.onerror = () => { img.hidden = true; head.classList.remove('has-logo'); };
+    img.onload = () => { img.hidden = false; head.classList.add('has-logo'); };
+    // Logo importé dans le navigateur, sinon logo.png du dépôt
+    img.src = custom || 'logo.png?v=2';
   }
 
   // ---------- Formulaire ----------
