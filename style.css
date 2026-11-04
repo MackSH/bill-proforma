@@ -9,6 +9,7 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   background: var(--ui-bg);
@@ -136,11 +137,11 @@ button.link { border: none; background: none; color: #b33; padding: 0; font-size
   white-space: nowrap;
 }
 
-.rule { border: none; border-top: 1px solid #333; margin: 8mm 0 3mm; }
+.rule { border: none; border-top: 1px solid #333; margin: 5mm 0 3mm; }
 
 .meta { display: flex; justify-content: space-between; gap: 10mm; line-height: 1.35; }
 .meta .date { white-space: nowrap; padding-right: 12mm; }
-.vehicle { margin: 4mm 0 2mm auto; width: fit-content; min-width: 60mm; margin-right: 22mm; line-height: 1.35; }
+.vehicle { margin: 2mm 0 2mm auto; width: fit-content; min-width: 60mm; margin-right: 22mm; line-height: 1.35; }
 
 /* Tableau */
 .invoice { width: 100%; border-collapse: collapse; font-size: 12pt; }
@@ -148,7 +149,7 @@ button.link { border: none; background: none; color: #b33; padding: 0; font-size
 .invoice col.c-desc { width: 38%; }
 .invoice col.c-pu { width: 25%; }
 .invoice col.c-amt { width: 26%; }
-.invoice th, .invoice td { border: 1px solid #000; padding: 1.2mm 2mm; vertical-align: middle; }
+.invoice th, .invoice td { border: 1px solid #000; padding: 0.9mm 2mm; vertical-align: middle; }
 .invoice .title-row th { font-weight: normal; border-bottom: 1.5px solid #000; }
 .invoice tr.green th {
   background: var(--green);
@@ -168,11 +169,15 @@ button.link { border: none; background: none; color: #b33; padding: 0; font-size
 
 .notes { margin-top: 6mm; white-space: pre-wrap; font-size: 11.5pt; }
 .notes:empty { display: none; }
-.signature { margin-top: 22mm; display: flex; justify-content: flex-end; }
-.sig-line { border-top: 1px solid #000; width: 65mm; text-align: center; padding-top: 1.5mm; font-size: 11pt; }
+.signature { margin-top: 8mm; display: flex; justify-content: flex-end; break-inside: avoid; page-break-inside: avoid; }
+.sig-box { width: 70mm; text-align: center; }
+.sig-title { font-weight: bold; font-size: 12pt; }
+.sig-space { height: 18mm; }
+.sig-line { border-top: 1px solid #000; }
+.sig-name { padding-top: 1.5mm; font-size: 11pt; }
 
 /* ---------------- Mobile ---------------- */
-@media (max-width: 1100px) {
+@media screen and (max-width: 1100px) {
   body { flex-direction: column; }
   .editor { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--ui-border); }
   .preview { padding: 12px; }
@@ -184,6 +189,9 @@ button.link { border: none; background: none; color: #b33; padding: 0; font-size
   html, body { background: #fff; display: block; }
   .no-print { display: none !important; }
   .preview { padding: 0; overflow: visible; display: block; }
-  .sheet { box-shadow: none; margin: 0; padding: 0; min-height: auto; width: auto; zoom: 1 !important; }
+  .sheet { box-shadow: none; margin: 0; padding: 0; min-height: auto; width: 180mm; zoom: 1 !important; }
   .invoice thead { display: table-header-group; }
 }
+
+/* ---------------- Génération PDF (copie hors écran, taille fixe A4) ---------------- */
+.sheet.pdf-sheet { box-shadow: none; margin: 0; padding: 0; min-height: 0; width: 180mm; zoom: 1 !important; }

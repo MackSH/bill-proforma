@@ -24,7 +24,7 @@
     model: '',
     plaque: 'AA-41779',
     notes: '',
-    showSignature: false,
+    hideSignature: false,
     items: [
       [1, 'Air Filter', 4500], [1, 'Oil Filter', 3000], [1, 'Fuel Filter', 7000],
       [1, 'Cabine Filter', 4500], [1, 'Gl 10W30 Castrol Oil', 6000],
@@ -87,7 +87,7 @@
 
   function fillForm() {
     docFields.forEach((f) => { $(f).value = doc[f] || ''; });
-    $('showSignature').checked = !!doc.showSignature;
+    $('showSignature').checked = !doc.hideSignature;
     coFields.forEach((f) => { $('co_' + f).value = company[f] || ''; });
     $('co_showText').checked = company.showText !== false;
     renderItemRows();
@@ -149,7 +149,8 @@
     text('pv_plaque', doc.plaque);
     text('pv_number', doc.number);
     text('pv_notes', doc.notes);
-    $('pv_signature').hidden = !doc.showSignature;
+    $('pv_signature').hidden = !!doc.hideSignature;
+    text('pv_sigName', company.name);
 
     const tb = $('pv_items');
     tb.innerHTML = '';
@@ -230,7 +231,7 @@
     doc = {
       id: null, number: nextNumber(d), date: d,
       client: '', attention: '', marque: '', model: '', plaque: '', notes: doc.notes || '',
-      showSignature: doc.showSignature, items: [{ qty: 1, desc: '', price: '' }],
+      hideSignature: !!doc.hideSignature, items: [{ qty: 1, desc: '', price: '' }],
     };
     fillForm(); update();
   }
@@ -248,14 +249,48 @@
   }
 
   // ---------- Impression ----------
+  const fileName = () => ([doc.number, doc.plaque].filter(Boolean).join(' ') || 'Proforma').replace(/[\\/:*?"<>|]+/g, '-');
+
   function printDoc() {
+    $('sheet').style.zoom = '';
     const old = document.title;
     // Nom proposé pour le fichier PDF
-    document.title = [doc.number, doc.plaque].filter(Boolean).join(' ') || 'Proforma';
+    document.title = fileName();
     const restore = () => { document.title = old; window.removeEventListener('afterprint', restore); };
     window.addEventListener('afterprint', restore);
     window.print();
     setTimeout(restore, 3000);
+  }
+
+  // PDF généré à partir d'une copie de la feuille à taille A4 fixe :
+  // le résultat est identique quel que soit l'écran (téléphone, tablette, ordinateur).
+  let busy = false;
+  async function downloadPdf() {
+    if (busy) return;
+    if (!window.html2pdf) { alert('Le module PDF est encore en chargement (connexion internet requise). Réessayez dans un instant.'); return; }
+    busy = true;
+    const btn = $('btnPdf'); const label = btn.textContent;
+    btn.textContent = 'Création du PDF…'; btn.disabled = true;
+    const copy = $('sheet').cloneNode(true);
+    copy.removeAttribute('id'); copy.style.zoom = ''; copy.classList.add('pdf-sheet');
+    copy.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
+    try {
+      const imgs = [...copy.querySelectorAll('img')].filter((i) => !i.hidden);
+      await Promise.all(imgs.map((i) => (i.decode ? i.decode().catch(() => {}) : null)));
+      await html2pdf().set({
+        margin: [14, 15, 14, 15],
+        filename: fileName() + '.pdf',
+        image: { type: 'jpeg', quality: 0.97 },
+        html2canvas: { scale: 3, useCORS: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css'], avoid: ['tr', '.signature', '.meta', '.vehicle'] },
+      }).from(copy).save();
+    } catch (err) {
+      console.error(err);
+      alert('Erreur lors de la création du PDF : ' + err.message);
+    } finally {
+      btn.textContent = label; btn.disabled = false; busy = false;
+    }
   }
 
   // ---------- Mise à l'échelle de l'aperçu (petits écrans) ----------
@@ -276,7 +311,7 @@
     // Si le numéro suit le format auto, l'adapter à la nouvelle date
     if (/^Bill-G-\d{8}-\d+$/.test(doc.number || '') && !doc.id) { doc.number = nextNumber(doc.date); $('number').value = doc.number; update(); }
   });
-  $('showSignature').addEventListener('change', (e) => { doc.showSignature = e.target.checked; update(); });
+  $('showSignature').addEventListener('change', (e) => { doc.hideSignature = !e.target.checked; update(); });
 
   coFields.forEach((f) => $('co_' + f).addEventListener('input', () => {
     company[f] = $('co_' + f).value; store(LS_COMPANY, company); renderPreview();
@@ -311,6 +346,7 @@
   $('btnSave').addEventListener('click', saveDoc);
   $('btnNew').addEventListener('click', newDoc);
   $('btnPrint').addEventListener('click', printDoc);
+  $('btnPdf').addEventListener('click', downloadPdf);
 
   $('btnExport').addEventListener('click', () => {
     const data = { company, logo: load(LS_LOGO, null), saved: load(LS_SAVED, []) };
@@ -343,6 +379,8 @@
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') { e.preventDefault(); printDoc(); }
   });
   window.addEventListener('resize', fitPreview);
+  window.addEventListener('beforeprint', () => { $('sheet').style.zoom = ''; });
+  window.addEventListener('afterprint', fitPreview);
 
   // ---------- Démarrage ----------
   applyLogo();

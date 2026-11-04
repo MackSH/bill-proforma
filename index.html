@@ -16,7 +16,8 @@
     <div class="ed-actions">
       <button id="btnNew" type="button">Nouveau</button>
       <button id="btnSave" type="button">Enregistrer</button>
-      <button id="btnPrint" type="button" class="primary">Imprimer / PDF</button>
+      <button id="btnPdf" type="button" class="primary">Télécharger PDF</button>
+      <button id="btnPrint" type="button">Imprimer</button>
     </div>
   </header>
 
@@ -60,7 +61,7 @@
   <details class="card">
     <summary>Bas de page (optionnel)</summary>
     <label>Notes <textarea id="notes" rows="3" placeholder="Ex : Validité de l'offre : 15 jours"></textarea></label>
-    <label class="check"><input type="checkbox" id="showSignature"> Afficher une ligne de signature</label>
+    <label class="check"><input type="checkbox" id="showSignature"> Afficher l'espace de signature</label>
   </details>
 
   <details class="card">
@@ -115,12 +116,18 @@
     </table>
 
     <div class="notes" id="pv_notes"></div>
-    <div class="signature" id="pv_signature" hidden>
-      <div class="sig-line">Signature &amp; cachet</div>
+    <div class="signature" id="pv_signature">
+      <div class="sig-box">
+        <div class="sig-title">Signature &amp; cachet</div>
+        <div class="sig-space"></div>
+        <div class="sig-line"></div>
+        <div class="sig-name" id="pv_sigName"></div>
+      </div>
     </div>
   </div>
 </main>
 
+<script src="lib/html2pdf.bundle.min.js" defer></script>
 <script src="app.js"></script>
 </body>
 </html>
