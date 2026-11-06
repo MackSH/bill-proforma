@@ -32,6 +32,9 @@
     <label>Adresse <input id="co_address"></label>
     <label>Téléphone <input id="co_phone"></label>
     <label>Email <input id="co_email"></label>
+    <label>Message en bas de la dernière page (paiement, services…)
+      <textarea id="co_footer" rows="6"></textarea></label>
+    <button type="button" id="btnFooterReset" class="link">Remettre le message d'origine</button>
   </details>
 
   <details class="card" open>
@@ -41,10 +44,14 @@
       <label>Date <input id="date" type="date"></label>
     </div>
     <label>Client <input id="client"></label>
-    <label>Attention de <input id="attention"></label>
+    <label>ATTN (à l'attention de) <input id="attention"></label>
     <div class="grid3">
       <label>Marque <input id="marque"></label>
-      <label>Model <input id="model"></label>
+      <label>Modèle <input id="model"></label>
+      <label>Année <input id="annee" inputmode="numeric"></label>
+      <label>Série <input id="serie"></label>
+      <label>Moteur <input id="moteur"></label>
+      <label>Mileage <input id="mileage"></label>
       <label>Plaque <input id="plaque"></label>
     </div>
   </details>
@@ -56,6 +63,15 @@
       <tbody id="itemsBody"></tbody>
     </table>
     <button type="button" id="btnAddRow">+ Ajouter une ligne</button>
+  </section>
+
+  <section class="card">
+    <h2>Totaux</h2>
+    <div class="grid2">
+      <label>Main d'oeuvre (HTG) <input id="labor" inputmode="decimal" placeholder="0.00"></label>
+      <label>Taux TCA (%) <input id="tcaRate" inputmode="decimal"></label>
+    </div>
+    <label class="check"><input type="checkbox" id="applyTca"> Appliquer la TCA</label>
   </section>
 
   <details class="card">
@@ -91,39 +107,41 @@
 
     <hr class="rule">
 
-    <div class="meta">
-      <div>
-        <div><b>Client :</b> <span id="pv_client"></span></div>
-        <div><b>Attention de :</b> <span id="pv_attention"></span></div>
+    <div class="head2">
+      <div class="who">
+        <div class="kv"><span class="k">Client</span><span class="sep">:</span><span id="pv_client"></span></div>
+        <div class="kv"><span class="k">ATTN</span><span class="sep">:</span><span id="pv_attention"></span></div>
+        <div class="doc-title">PROFORMA</div>
       </div>
-      <div class="date"><b>Le <span id="pv_date"></span></b></div>
-    </div>
-
-    <div class="vehicle">
-      <div><b>Marque :</b> <span id="pv_marque"></span></div>
-      <div><b>Model:</b> <span id="pv_model"></span></div>
-      <div><b>Plaque :</b> <span id="pv_plaque"></span></div>
+      <div class="veh-wrap">
+        <div class="veh-box" id="pv_vehicle"></div>
+        <div class="pf-number"><b>N° Proforma :</b> <span id="pv_number"></span></div>
+      </div>
     </div>
 
     <table class="invoice">
       <colgroup><col class="c-qty"><col class="c-desc"><col class="c-pu"><col class="c-amt"></colgroup>
       <thead>
-        <tr class="title-row"><th colspan="2" class="l">Proforma</th><th colspan="2" class="c" id="pv_number"></th></tr>
-        <tr class="green"><th>QTE</th><th class="l">Description</th><th>Prix Unité</th><th>Montant (HTG)</th></tr>
+        <tr class="green"><th>Qté</th><th class="l">Description</th><th>Prix Unitaire</th><th>Prix Total (HTG)</th></tr>
       </thead>
       <tbody id="pv_items"></tbody>
     </table>
 
+    <table class="summary" id="pv_summary"></table>
+
     <div class="notes" id="pv_notes"></div>
+
     <div class="signature" id="pv_signature">
       <div class="sig-box">
-        <div class="sig-title">Signature &amp; cachet</div>
         <div class="sig-space"></div>
         <div class="sig-line"></div>
+        <div class="sig-label">Signature</div>
         <div class="sig-name" id="pv_sigName"></div>
         <div class="sig-role" id="pv_sigRole"></div>
       </div>
     </div>
+
+    <div class="footer-msg" id="pv_footer"></div>
   </div>
 </main>
 

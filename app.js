@@ -6,12 +6,19 @@
   const LS_DRAFT = 'proforma.draft';
   const LS_SAVED = 'proforma.saved';
 
+  const DEFAULT_FOOTER = [
+    "Pour paiement : Prière d'émettre chèque à l'ordre de Bill-Metz Auto Garage.",
+    'Virement à la Sogebel : Compte courant $US # 154 010 2751 & Compte courant HTG # 4910 0993',
+    'Services offerts : Transport de marchandises et location de véhicules - Diagnostic complet – Climatisation – Douco – Dressage – Suspension - Electricité auto - Programmation clé - Installation GPS - Installation alarme - Service d’entretien.',
+  ].join('\n');
+
   const DEFAULT_COMPANY = {
     name: 'BILL-METZ AUTO GARAGE',
     address: '5, rue V La Tortue, Delmas 33',
     phone: '(509) 3614 3734/4362 0141',
     email: 'billmetzautogarage17@gmail.com',
     showText: true,
+    footer: DEFAULT_FOOTER,
   };
 
   const SAMPLE = {
@@ -21,9 +28,10 @@
     client: "Banque De La Republique D'Haiti",
     attention: 'Nicolas BIENAISE',
     marque: 'Vitara',
-    model: '',
+    model: '', annee: '', serie: '', moteur: '', mileage: '',
     plaque: 'AA-41779',
     notes: '',
+    labor: 75000, applyTca: true, tcaRate: 10,
     hideSignature: false,
     items: [
       [1, 'Air Filter', 4500], [1, 'Oil Filter', 3000], [1, 'Fuel Filter', 7000],
@@ -32,7 +40,7 @@
       [2, 'Engine Mounting', 24000], [1, 'Transmission Mounting', 24500],
       [2, 'Lower Arm', 27000], [2, 'Link Stabilizer Fr', 17000],
       [2, 'Tie Rod Inner', 16000], [2, 'Tie Rod Outer', 12000],
-      [1, 'Main Seal', 14500], [1, 'Seal Rear', 12500], [1, "Main D'oeuvre", 75000],
+      [1, 'Main Seal', 14500], [1, 'Seal Rear', 12500],
     ].map(([qty, desc, price]) => ({ qty, desc, price })),
   };
 
@@ -82,12 +90,18 @@
   }
 
   // ---------- Formulaire ----------
-  const docFields = ['number', 'date', 'client', 'attention', 'marque', 'model', 'plaque', 'notes', 'signer', 'signerTitle'];
-  const coFields = ['name', 'address', 'phone', 'email'];
+  const docFields = ['number', 'date', 'client', 'attention', 'marque', 'model', 'annee', 'serie', 'moteur', 'mileage', 'plaque',
+    'notes', 'signer', 'signerTitle', 'labor', 'tcaRate'];
+  const coFields = ['name', 'address', 'phone', 'email', 'footer'];
+  const tcaRate = () => (doc.tcaRate === undefined ? 10 : parseNum(doc.tcaRate));
 
   function fillForm() {
     docFields.forEach((f) => { $(f).value = doc[f] || ''; });
     $('showSignature').checked = !doc.hideSignature;
+    if (doc.tcaRate === undefined) doc.tcaRate = 10;
+    if (doc.applyTca === undefined) doc.applyTca = true;
+    $('tcaRate').value = doc.tcaRate;
+    $('applyTca').checked = !!doc.applyTca;
     coFields.forEach((f) => { $('co_' + f).value = company[f] || ''; });
     $('co_showText').checked = company.showText !== false;
     renderItemRows();
@@ -143,11 +157,23 @@
 
     text('pv_client', doc.client);
     text('pv_attention', doc.attention);
-    text('pv_date', frDate(doc.date));
-    text('pv_marque', doc.marque);
-    text('pv_model', doc.model);
-    text('pv_plaque', doc.plaque);
     text('pv_number', doc.number);
+    text('pv_footer', company.footer);
+
+    // Encadré véhicule (la plaque n'apparaît que si elle est remplie)
+    const veh = $('pv_vehicle');
+    veh.innerHTML = '';
+    [['Date', frDate(doc.date)], ['Marque', doc.marque], ['Modèle', doc.model], ['Année', doc.annee],
+      ['Série', doc.serie], ['Moteur', doc.moteur], ['Mileage', doc.mileage], ['Plaque', doc.plaque, true]]
+      .forEach(([k, v, optional]) => {
+        if (optional && !String(v || '').trim()) return;
+        const row = document.createElement('div');
+        row.className = 'kv';
+        row.innerHTML = '<span class="k"></span><span class="sep">:</span><span></span>';
+        row.children[0].textContent = k;
+        row.children[2].textContent = v || '';
+        veh.appendChild(row);
+      });
     text('pv_notes', doc.notes);
     $('pv_signature').hidden = !!doc.hideSignature;
     text('pv_sigName', doc.signer);
@@ -155,12 +181,12 @@
 
     const tb = $('pv_items');
     tb.innerHTML = '';
-    let totalPU = 0, total = 0;
+    let total = 0;
     doc.items.forEach((it) => {
       // Ligne ignorée : sans prix et sans vrai texte (vide ou seulement des chiffres)
       if (!parseNum(it.price) && !/[A-Za-zÀ-ÿ]/.test(String(it.desc || ''))) return;
       const q = parseNum(it.qty), p = parseNum(it.price), amt = q * p;
-      totalPU += p; total += amt;
+      total += amt;
       const tr = document.createElement('tr');
       const cells = [
         [String(it.qty ?? ''), 'qty'],
@@ -174,14 +200,28 @@
       });
       tb.appendChild(tr);
     });
-    // Ligne du total : une seule fois, à la fin de la liste (pas répétée sur chaque page)
-    const tr = document.createElement('tr');
-    tr.className = 'total';
-    [['', ''], ['Montant Total', 'c'], [fmt(totalPU), 'r'], [fmt(total), 'r']].forEach(([v, cls]) => {
-      const td = document.createElement('td');
-      td.className = cls; td.textContent = v; tr.appendChild(td);
+    // Encadré des totaux (une seule fois, après le dernier article)
+    const labor = parseNum(doc.labor);
+    const sub = total + labor;
+    const rate = tcaRate();
+    const tca = doc.applyTca ? Math.round(sub * rate) / 100 : 0;
+    const rows = [];
+    if (labor) rows.push(["Main d'oeuvre", labor]);
+    if (doc.applyTca) {
+      rows.push(['Sous-total', sub]);
+      rows.push([`TCA (${String(rate).replace('.', ',')} %)`, tca]);
+    }
+    rows.push(['TOTAL', sub + tca, 'grand']);
+    const sm = $('pv_summary');
+    sm.innerHTML = '';
+    rows.forEach(([k, v, cls]) => {
+      const tr = document.createElement('tr');
+      if (cls) tr.className = cls;
+      tr.innerHTML = '<td class="k"></td><td class="v"></td>';
+      tr.children[0].textContent = k + ' :';
+      tr.children[1].textContent = fmt(v);
+      sm.appendChild(tr);
     });
-    tb.appendChild(tr);
   }
 
   let draftTimer;
@@ -238,7 +278,8 @@
     const d = todayISO();
     doc = {
       id: null, number: nextNumber(d), date: d,
-      client: '', attention: '', marque: '', model: '', plaque: '', notes: doc.notes || '',
+      client: '', attention: '', marque: '', model: '', annee: '', serie: '', moteur: '', mileage: '', plaque: '',
+      notes: doc.notes || '', labor: '', applyTca: doc.applyTca !== false, tcaRate: doc.tcaRate ?? 10,
       hideSignature: !!doc.hideSignature, signer: doc.signer || '', signerTitle: doc.signerTitle || '', items: [{ qty: 1, desc: '', price: '' }],
     };
     fillForm(); update();
@@ -278,7 +319,7 @@
     const table = first.querySelector('table.invoice');
     const tbody = table.tBodies[0];
     const rows = [...tbody.rows];
-    const tail = [...first.querySelectorAll('.notes, .signature')];
+    const tail = [...first.querySelectorAll('.summary, .notes, .signature, .footer-msg')];
     tail.forEach((el) => el.remove());
     rows.forEach((r) => r.remove());
     const pages = [first];
@@ -300,12 +341,12 @@
       body.appendChild(r);
       if (page.offsetHeight > MAX && body.rows.length > 1) { r.remove(); newPage(); body.appendChild(r); }
     });
-    // Notes + signature : si elles ne tiennent pas, les derniers articles et le total
+    // Totaux + signature + message : si ils ne tiennent pas, les derniers articles et le total
     // passent avec elles sur la page suivante (la signature n'est jamais seule).
     tail.forEach((el) => page.appendChild(el));
     if (tail.length && page.offsetHeight > MAX) {
       tail.forEach((el) => el.remove());
-      const k = Math.min(4, body.rows.length - 1); // 3 derniers articles + total
+      const k = Math.min(3, body.rows.length - 1); // 3 derniers articles
       const moved = k > 0 ? [...body.rows].slice(-k) : [];
       if (moved.length) {
         moved.forEach((r) => r.remove());
@@ -322,11 +363,13 @@
     // au moins 3 articles + le total (pris à la fin de la page précédente).
     if (bodies.length > 1) {
       const last = bodies[bodies.length - 1], prev = bodies[bodies.length - 2];
-      const need = Math.min(4 - last.rows.length, prev.rows.length - 1);
+      const need = Math.min(3 - last.rows.length, prev.rows.length - 1);
       if (need > 0) {
         [...prev.rows].slice(-need).reverse().forEach((r) => last.insertBefore(r, last.firstChild));
       }
     }
+    // Dernière page à pleine hauteur : le message de paiement se place tout en bas
+    page.style.height = Math.floor(MAX) + 'px';
     return pages;
   }
 
@@ -414,6 +457,10 @@
     if (/^Bill-G-\d{8}-\d+$/.test(doc.number || '') && !doc.id) { doc.number = nextNumber(doc.date); $('number').value = doc.number; update(); }
   });
   $('showSignature').addEventListener('change', (e) => { doc.hideSignature = !e.target.checked; update(); });
+  $('applyTca').addEventListener('change', (e) => { doc.applyTca = e.target.checked; update(); });
+  $('btnFooterReset').addEventListener('click', () => {
+    company.footer = DEFAULT_FOOTER; $('co_footer').value = DEFAULT_FOOTER; store(LS_COMPANY, company); renderPreview();
+  });
 
   coFields.forEach((f) => $('co_' + f).addEventListener('input', () => {
     company[f] = $('co_' + f).value; store(LS_COMPANY, company); renderPreview();

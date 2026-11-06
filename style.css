@@ -125,32 +125,39 @@ button.link { border: none; background: none; color: #b33; padding: 0; font-size
 
 /* Avec logo (le logo contient déjà le nom) : coordonnées placées sous le nom,
    alignées sur le début du texte « BILL-METZ », à droite de l'engrenage */
-.letterhead.has-logo { position: relative; display: block; width: 128mm; min-height: 0; }
+.letterhead.has-logo { position: relative; display: block; width: 112mm; min-height: 0; }
 .letterhead.has-logo img { display: block; width: 100%; max-height: none; }
 .letterhead.has-logo .co-name { display: none; }
 .letterhead.has-logo .co-text {
   position: absolute;
   left: 30.8%;
   top: 67%;
-  font-size: 11.5pt;
-  line-height: 1.22;
+  font-size: 10.5pt;
+  line-height: 1.2;
   white-space: nowrap;
 }
 
-.rule { border: none; border-top: 1px solid #333; margin: 5mm 0 3mm; }
+.rule { border: none; border-top: 1px solid #333; margin: 4mm 0 2mm; }
 
-.meta { display: flex; justify-content: space-between; gap: 10mm; line-height: 1.35; }
-.meta .date { white-space: nowrap; padding-right: 12mm; }
-.vehicle { margin: 2mm 0 2mm auto; width: fit-content; min-width: 60mm; margin-right: 22mm; line-height: 1.35; }
+/* Client / ATTN à gauche, encadré véhicule à droite */
+.head2 { display: flex; justify-content: space-between; align-items: stretch; gap: 8mm; }
+.who { flex: 1; padding-top: 1.5mm; display: flex; flex-direction: column; }
+.kv { display: grid; grid-template-columns: 17mm 4mm 1fr; line-height: 1.45; }
+.kv .k { font-weight: bold; }
+.doc-title { margin-top: auto; padding-top: 4mm; font-size: 19pt; font-weight: bold; letter-spacing: 1.5px; line-height: 1; }
+.veh-wrap { width: 72mm; }
+.veh-box { border: 1.5px solid #000; padding: 1.5mm 3mm; font-size: 11pt; }
+.veh-box .kv { grid-template-columns: 19mm 4mm 1fr; line-height: 1.28; }
+.pf-number { margin-top: 1mm; font-size: 11pt; text-align: right; }
 
-/* Tableau */
-.invoice { width: 100%; border-collapse: collapse; font-size: 12pt; }
-.invoice col.c-qty { width: 11%; }
-.invoice col.c-desc { width: 38%; }
-.invoice col.c-pu { width: 25%; }
-.invoice col.c-amt { width: 26%; }
-.invoice th, .invoice td { border: 1px solid #000; padding: 0.9mm 2mm; vertical-align: middle; }
-.invoice .title-row th { font-weight: normal; border-bottom: 1.5px solid #000; }
+/* Tableau : colonnes séparées par des traits verticaux (comme le manuscrit) */
+.invoice { width: 100%; border-collapse: collapse; font-size: 12pt; margin-top: 3mm; border: 1.5px solid #000; }
+.invoice col.c-qty { width: 9%; }
+.invoice col.c-desc { width: 47%; }
+.invoice col.c-pu { width: 21%; }
+.invoice col.c-amt { width: 23%; }
+.invoice th, .invoice td { border-left: 1px solid #000; border-right: 1px solid #000; padding: 0.7mm 2mm; vertical-align: middle; }
+.invoice thead th { border: 1px solid #000; border-bottom: 1.5px solid #000; }
 .invoice tr.green th {
   background: var(--green);
   font-weight: bold;
@@ -159,24 +166,45 @@ button.link { border: none; background: none; color: #b33; padding: 0; font-size
   print-color-adjust: exact;
 }
 .invoice tr.green th.l { text-align: left; }
-.invoice td.qty { text-align: right; }
+.invoice td.qty { text-align: center; }
 .invoice .l { text-align: left; }
-.invoice .c { text-align: center; }
 .invoice .r { text-align: right; white-space: nowrap; }
 .invoice tbody tr { break-inside: avoid; page-break-inside: avoid; }
-.invoice tr.total td { font-weight: bold; border-top: 2px solid #000; }
-.invoice { border: 2px solid #000; }
+.invoice tbody tr:last-child td { padding-bottom: 2mm; }
 
-.notes { margin-top: 6mm; white-space: pre-wrap; font-size: 11.5pt; }
+/* Encadré des totaux, sous les colonnes Prix Unitaire / Prix Total */
+.summary { width: 44%; margin-left: auto; border-collapse: collapse; border: 1.5px solid #000; border-top: none; font-size: 12pt; break-inside: avoid; }
+.summary td { padding: 0.8mm 2mm; }
+.summary td.k { width: 47.7%; text-align: right; font-weight: bold; border-right: 1px solid #000; white-space: nowrap; }
+.summary td.v { text-align: right; white-space: nowrap; }
+.summary tr.grand td { border-top: 1.5px solid #000; font-size: 13pt; }
+
+.notes { margin-top: 5mm; white-space: pre-wrap; font-size: 11.5pt; }
 .notes:empty { display: none; }
-.signature { margin-top: 8mm; display: flex; justify-content: flex-end; break-inside: avoid; page-break-inside: avoid; }
-.sig-box { width: 70mm; text-align: center; }
-.sig-title { font-weight: bold; font-size: 12pt; }
-.sig-space { height: 15mm; }
+
+/* Signature en bas à gauche */
+.signature { margin-top: 3mm; display: flex; justify-content: flex-start; break-inside: avoid; page-break-inside: avoid; }
+.sig-box { width: 75mm; text-align: center; }
+.sig-space { height: 13mm; }
 .sig-line { border-top: 1px solid #000; }
-.sig-name { padding-top: 1.5mm; font-size: 11.5pt; font-weight: bold; }
+.sig-label { padding-top: 1mm; font-size: 11.5pt; font-style: italic; }
+.sig-name { padding-top: .5mm; font-size: 11.5pt; font-weight: bold; }
 .sig-role { font-size: 10.5pt; }
 .sig-name:empty, .sig-role:empty { display: none; }
+
+/* Message de paiement : en bas de la dernière page */
+.sheet { display: flex; flex-direction: column; }
+.footer-msg {
+  margin-top: auto;
+  padding-top: 4mm;
+  font-family: Calibri, "Segoe UI", Arial, sans-serif;
+  font-style: italic;
+  font-size: 9pt;
+  line-height: 1.3;
+  text-align: center;
+  white-space: pre-wrap;
+}
+.footer-msg:empty { display: none; }
 
 /* ---------------- Mobile ---------------- */
 @media screen and (max-width: 1100px) {
