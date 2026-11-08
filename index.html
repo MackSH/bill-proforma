@@ -4,15 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Proforma – Bill-Metz Auto Garage</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧾</text></svg>">
+<link rel="icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1f4e9c">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Proforma">
 </head>
 <body>
 
 <!-- ============ ÉDITEUR (masqué à l'impression) ============ -->
 <aside class="editor no-print">
   <header class="ed-head">
-    <h1>🧾 Proforma</h1>
+    <h1>🧾 Proforma <span id="netStatus" class="net" hidden></span></h1>
     <div class="ed-actions">
       <button id="btnNew" type="button">Nouveau</button>
       <button id="btnSave" type="button">Enregistrer</button>

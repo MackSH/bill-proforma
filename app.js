@@ -404,7 +404,7 @@
   let busy = false;
   async function downloadPdf() {
     if (busy) return;
-    if (!window.html2pdf) { alert('Le module PDF est encore en chargement (connexion internet requise). Réessayez dans un instant.'); return; }
+    if (!window.html2pdf) { alert('Le module PDF est encore en chargement. Réessayez dans un instant.'); return; }
     busy = true;
     const btn = $('btnPdf'); const label = btn.textContent;
     btn.textContent = 'Création du PDF…'; btn.disabled = true;
@@ -530,6 +530,22 @@
   window.addEventListener('resize', fitPreview);
   window.addEventListener('beforeprint', preparePrint);
   window.addEventListener('afterprint', cleanupPrint);
+
+  // ---------- Hors connexion ----------
+  // Le service worker garde le site en mémoire : il s'ouvre et fonctionne sans réseau.
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch((err) => console.warn('Service worker :', err));
+    });
+  }
+  function showNet() {
+    const el = $('netStatus');
+    el.hidden = navigator.onLine;
+    el.textContent = 'Hors connexion';
+  }
+  window.addEventListener('online', showNet);
+  window.addEventListener('offline', showNet);
+  showNet();
 
   // ---------- Démarrage ----------
   applyLogo();
