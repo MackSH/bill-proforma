@@ -98,6 +98,7 @@
   function fillForm() {
     docFields.forEach((f) => { $(f).value = doc[f] || ''; });
     $('showSignature').checked = !doc.hideSignature;
+    $('showStamp').checked = !doc.hideStamp;
     if (doc.tcaRate === undefined) doc.tcaRate = 10;
     if (doc.applyTca === undefined) doc.applyTca = true;
     $('tcaRate').value = doc.tcaRate;
@@ -176,6 +177,7 @@
       });
     text('pv_notes', doc.notes);
     $('pv_signature').hidden = !!doc.hideSignature;
+    $('pv_stamp').parentElement.classList.toggle('with-stamp', !doc.hideStamp);
     text('pv_sigName', doc.signer);
     text('pv_sigRole', doc.signerTitle);
 
@@ -280,7 +282,7 @@
       id: null, number: nextNumber(d), date: d,
       client: '', attention: '', marque: '', model: '', annee: '', serie: '', moteur: '', mileage: '', plaque: '',
       notes: doc.notes || '', labor: '', applyTca: doc.applyTca !== false, tcaRate: doc.tcaRate ?? 10,
-      hideSignature: !!doc.hideSignature, signer: doc.signer || '', signerTitle: doc.signerTitle || '', items: [{ qty: 1, desc: '', price: '' }],
+      hideSignature: !!doc.hideSignature, hideStamp: !!doc.hideStamp, signer: doc.signer || '', signerTitle: doc.signerTitle || '', items: [{ qty: 1, desc: '', price: '' }],
     };
     fillForm(); update();
   }
@@ -319,7 +321,7 @@
     const table = first.querySelector('table.invoice');
     const tbody = table.tBodies[0];
     const rows = [...tbody.rows];
-    const tail = [...first.querySelectorAll('.summary, .notes, .signature, .footer-msg')];
+    const tail = [...first.querySelectorAll('.closing, .notes, .footer-msg')];
     tail.forEach((el) => el.remove());
     rows.forEach((r) => r.remove());
     const pages = [first];
@@ -377,6 +379,12 @@
   function buildPages(host) {
     const copy = $('sheet').cloneNode(true);
     copy.removeAttribute('id'); copy.style.zoom = ''; copy.classList.add('pdf-sheet');
+    // Donner aux images leurs dimensions réelles : la mise en page ne dépend pas de leur chargement
+    const orig = [...$('sheet').querySelectorAll('img')];
+    [...copy.querySelectorAll('img')].forEach((img, i) => {
+      const o = orig[i];
+      if (o && o.naturalWidth) { img.setAttribute('width', o.naturalWidth); img.setAttribute('height', o.naturalHeight); }
+    });
     copy.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
     host.appendChild(copy);
     return paginate(copy, host);
@@ -457,6 +465,7 @@
     if (/^Bill-G-\d{8}-\d+$/.test(doc.number || '') && !doc.id) { doc.number = nextNumber(doc.date); $('number').value = doc.number; update(); }
   });
   $('showSignature').addEventListener('change', (e) => { doc.hideSignature = !e.target.checked; update(); });
+  $('showStamp').addEventListener('change', (e) => { doc.hideStamp = !e.target.checked; update(); });
   $('applyTca').addEventListener('change', (e) => { doc.applyTca = e.target.checked; update(); });
   $('btnFooterReset').addEventListener('click', () => {
     company.footer = DEFAULT_FOOTER; $('co_footer').value = DEFAULT_FOOTER; store(LS_COMPANY, company); renderPreview();
@@ -533,18 +542,101 @@
 
   // ---------- Hors connexion ----------
   // Le service worker garde le site en mémoire : il s'ouvre et fonctionne sans réseau.
+  const OFFLINE_FILES = ['index.html', 'style.css', 'app.js', 'logo.png', 'stamp.png', 'lib/html2pdf.bundle.min.js'];
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const inAppBrowser = /FBAN|FBAV|FB_IAB|Instagram|Line\/|WhatsApp|Snapchat|TikTok|; wv\)/i.test(ua);
+  const iosNotSafari = isIOS && /CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+  let installEvent = null;
+
+  function setOffStatus(msg, cls) {
+    const el = $('offStatus');
+    el.textContent = msg;
+    el.className = 'off-status' + (cls ? ' ' + cls : '');
+  }
+
+  async function checkOfflineReady() {
+    if (!('serviceWorker' in navigator) || !window.caches) {
+      setOffStatus("⚠️ Ce navigateur ne permet pas le mode hors ligne. Ouvrez le site dans Safari (iPhone) ou Chrome (Android).", 'warn');
+      return false;
+    }
+    let n = 0;
+    for (const f of OFFLINE_FILES) {
+      if (await caches.match(new URL(f, location.href).href, { ignoreSearch: true })) n++;
+    }
+    if (n === OFFLINE_FILES.length) {
+      setOffStatus(isStandalone ? '✅ Application installée — fonctionne sans réseau' : '✅ Prêt hors ligne sur cet appareil', 'ok');
+      return true;
+    }
+    setOffStatus(navigator.onLine
+      ? `⏳ Préparation du mode hors ligne… (${n}/${OFFLINE_FILES.length})`
+      : '⚠️ Pas encore prêt hors ligne : ouvrez le site une fois avec internet.', navigator.onLine ? '' : 'warn');
+    return false;
+  }
+
+  function helpHtml() {
+    const after = `<p><b>Important :</b> après l'installation, ouvrez l'application <b>une fois avec internet</b> (attendez « ✅ Prêt hors ligne »). Ensuite elle s'ouvre et fonctionne sans réseau, depuis son icône.</p>`;
+    if (inAppBrowser) {
+      return `<p>⚠️ Vous êtes dans le navigateur d'une autre application (WhatsApp, Facebook…). Le mode hors ligne n'y fonctionne pas.</p>
+        <p>Ouvrez ce lien dans <b>${isIOS ? 'Safari' : 'Chrome'}</b> : menu ⋯ → « Ouvrir dans ${isIOS ? 'Safari' : 'le navigateur'} ».</p>`;
+    }
+    if (isIOS) {
+      return (iosNotSafari ? `<p>⚠️ Sur iPhone, utilisez <b>Safari</b> pour installer l'application.</p>` : '') + `
+        <ol>
+          <li>Dans <b>Safari</b>, touchez le bouton <b>Partager</b> (carré avec une flèche ↑).</li>
+          <li>Choisissez <b>« Sur l'écran d'accueil »</b>, puis <b>Ajouter</b>.</li>
+          <li>Ouvrez l'icône <b>Proforma</b> depuis l'écran d'accueil.</li>
+        </ol>${after}
+        <p>Sur iPhone, l'application installée garde ses propres proformas, séparées de celles de Safari. Faites vos proformas dans l'application. Pour récupérer celles de Safari : <i>Exporter</i> dans Safari, puis <i>Importer</i> dans l'application.</p>`;
+    }
+    return `<ol>
+        <li>Dans <b>Chrome</b>, touchez <b>« Installer l'application »</b> ci-dessus, ou le menu <b>⋮</b> → <b>« Installer l'application »</b> / <b>« Ajouter à l'écran d'accueil »</b>.</li>
+        <li>Ouvrez l'icône <b>Proforma</b> depuis l'écran d'accueil.</li>
+      </ol>${after}
+      <p>Même sans installer, la page déjà ouverte dans Chrome reste utilisable sans réseau une fois « ✅ Prêt hors ligne » affiché.</p>`;
+  }
+
+  function toggleHelp(force) {
+    const box = $('offHelp');
+    box.innerHTML = helpHtml();
+    box.hidden = force === undefined ? !box.hidden : !force;
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvent = e; });
+  window.addEventListener('appinstalled', () => { installEvent = null; $('btnInstall').hidden = true; toast('Application installée ✔'); });
+  $('btnInstall').addEventListener('click', async () => {
+    if (installEvent) {
+      installEvent.prompt();
+      try { await installEvent.userChoice; } catch {}
+      installEvent = null;
+    } else {
+      toggleHelp(true);
+    }
+  });
+  $('btnOffHelp').addEventListener('click', () => toggleHelp());
+  if (isStandalone) $('btnInstall').hidden = true;
+  if (inAppBrowser) toggleHelp(true);
+
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch((err) => console.warn('Service worker :', err));
-    });
+    navigator.serviceWorker.register('sw.js')
+      .then(() => navigator.serviceWorker.ready)
+      .then(async () => {
+        // Demander au navigateur de ne pas effacer les données (site + proformas enregistrées)
+        if (navigator.storage && navigator.storage.persist) { try { await navigator.storage.persist(); } catch {} }
+        for (let i = 0; i < 30 && !(await checkOfflineReady()); i++) await new Promise((r) => setTimeout(r, 1000));
+      })
+      .catch((err) => { console.warn('Service worker :', err); checkOfflineReady(); });
+  } else {
+    checkOfflineReady();
   }
   function showNet() {
     const el = $('netStatus');
     el.hidden = navigator.onLine;
     el.textContent = 'Hors connexion';
   }
-  window.addEventListener('online', showNet);
-  window.addEventListener('offline', showNet);
+  window.addEventListener('online', () => { showNet(); checkOfflineReady(); });
+  window.addEventListener('offline', () => { showNet(); checkOfflineReady(); });
   showNet();
 
   // ---------- Démarrage ----------

@@ -27,6 +27,15 @@
     </div>
   </header>
 
+  <section class="card offline-card" id="offlineCard">
+    <div class="off-status" id="offStatus">⏳ Préparation du mode hors ligne…</div>
+    <div class="ed-actions">
+      <button type="button" id="btnInstall" class="primary">📲 Installer l'application (hors ligne)</button>
+      <button type="button" id="btnOffHelp" class="link-btn">Comment ça marche ?</button>
+    </div>
+    <div class="off-help" id="offHelp" hidden></div>
+  </section>
+
   <details class="card">
     <summary>Entreprise &amp; logo</summary>
     <label>Logo (image d'en-tête)
@@ -84,6 +93,7 @@
     <summary>Signature &amp; bas de page</summary>
     <label>Notes <textarea id="notes" rows="3" placeholder="Ex : Validité de l'offre : 15 jours"></textarea></label>
     <label class="check"><input type="checkbox" id="showSignature"> Afficher l'espace de signature</label>
+    <label class="check"><input type="checkbox" id="showStamp"> Apposer le sceau de l'entreprise</label>
     <label>Nom du signataire <input id="signer" placeholder="Ex : Bill Metz"></label>
     <label>Fonction (optionnel) <input id="signerTitle" placeholder="Ex : Directeur"></label>
   </details>
@@ -133,19 +143,20 @@
       <tbody id="pv_items"></tbody>
     </table>
 
-    <table class="summary" id="pv_summary"></table>
-
-    <div class="notes" id="pv_notes"></div>
-
-    <div class="signature" id="pv_signature">
-      <div class="sig-box">
-        <div class="sig-space"></div>
-        <div class="sig-line"></div>
+    <div class="closing">
+      <table class="summary" id="pv_summary"></table>
+      <div class="signature" id="pv_signature">
+        <div class="sig-box">
+          <div class="sig-space"><img class="stamp" id="pv_stamp" src="stamp.png" alt="Sceau"></div>
+          <div class="sig-line"></div>
         <div class="sig-label">Signature</div>
         <div class="sig-name" id="pv_sigName"></div>
         <div class="sig-role" id="pv_sigRole"></div>
+        </div>
       </div>
     </div>
+
+    <div class="notes" id="pv_notes"></div>
 
     <div class="footer-msg" id="pv_footer"></div>
   </div>
