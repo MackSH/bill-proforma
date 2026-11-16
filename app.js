@@ -83,10 +83,31 @@
     const img = $('pv_logo');
     const custom = load(LS_LOGO, null);
     const head = $('pv_letterhead');
-    img.onerror = () => { img.hidden = true; head.classList.remove('has-logo'); };
-    img.onload = () => { img.hidden = false; head.classList.add('has-logo'); };
+    img.onerror = () => { img.hidden = true; head.classList.remove('has-logo'); renderPreview(); };
+    img.onload = () => { img.hidden = false; head.classList.add('has-logo'); makeStampLogo(img); renderPreview(); };
     // Logo importé dans le navigateur, sinon logo.png du dépôt
     img.src = custom || 'logo.png?v=2';
+  }
+
+  // Version noir et blanc du logo pour le sceau (le vrai tampon est noir sur fond blanc)
+  function makeStampLogo(src) {
+    try {
+      const c = document.createElement('canvas');
+      c.width = src.naturalWidth; c.height = src.naturalHeight;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(src, 0, 0);
+      const data = ctx.getImageData(0, 0, c.width, c.height);
+      const d = data.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+        const v = lum < 170 ? 0 : 255; // couleurs foncées → noir, clair → blanc
+        d[i] = d[i + 1] = d[i + 2] = v;
+      }
+      ctx.putImageData(data, 0, 0);
+      $('pv_stampLogo').src = c.toDataURL('image/png');
+    } catch (err) {
+      console.warn('Sceau :', err);
+    }
   }
 
   // ---------- Formulaire ----------
@@ -154,6 +175,9 @@
     text('pv_coAddress', company.address);
     text('pv_coPhone', company.phone);
     text('pv_coEmail', company.email);
+    text('pv_stAddress', company.address);
+    text('pv_stPhone', company.phone);
+    text('pv_stEmail', company.email);
     $('pv_coText').classList.toggle('hidden', company.showText === false);
 
     text('pv_client', doc.client);
@@ -177,7 +201,7 @@
       });
     text('pv_notes', doc.notes);
     $('pv_signature').hidden = !!doc.hideSignature;
-    $('pv_stamp').parentElement.classList.toggle('with-stamp', !doc.hideStamp);
+    $('pv_stamp').parentElement.classList.toggle('with-stamp', !doc.hideStamp && !$('pv_logo').hidden);
     text('pv_sigName', doc.signer);
     text('pv_sigRole', doc.signerTitle);
 
@@ -542,7 +566,7 @@
 
   // ---------- Hors connexion ----------
   // Le service worker garde le site en mémoire : il s'ouvre et fonctionne sans réseau.
-  const OFFLINE_FILES = ['index.html', 'style.css', 'app.js', 'logo.png', 'stamp.png', 'lib/html2pdf.bundle.min.js'];
+  const OFFLINE_FILES = ['index.html', 'style.css', 'app.js', 'logo.png', 'lib/html2pdf.bundle.min.js'];
   const ua = navigator.userAgent;
   const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;

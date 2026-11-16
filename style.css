@@ -198,16 +198,26 @@ button.link { border: none; background: none; color: #b33; padding: 0; font-size
 .signature { margin-top: 3mm; break-inside: avoid; page-break-inside: avoid; }
 .sig-box { width: 78mm; text-align: center; }
 .sig-space { height: 13mm; position: relative; }
-.sig-space.with-stamp { height: 27mm; }
+.sig-space.with-stamp { height: 28mm; }
 .stamp { display: none; }
+/* Sceau : l'en-tête (logo + coordonnées) en petit, noir sur blanc */
 .with-stamp .stamp {
   display: block;
   position: absolute;
-  left: 1mm; bottom: -1.5mm;
+  left: 1mm; bottom: 2.5mm;
   width: 76mm;
-  height: auto;
-  transform: rotate(-2deg);
-  opacity: .92;
+  text-align: left;
+}
+.stamp img { display: block; width: 100%; height: auto; }
+.stamp-text {
+  position: absolute;
+  left: 30.8%;
+  top: 67%;
+  font-family: Calibri, "Segoe UI", Arial, sans-serif;
+  font-size: 7.2pt;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: #000;
 }
 .sig-line { border-top: 1px solid #000; }
 .sig-label { padding-top: 1mm; font-size: 11.5pt; font-style: italic; }

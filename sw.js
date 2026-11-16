@@ -1,13 +1,12 @@
 // Service worker : garde tout le site en mémoire pour un usage 100 % hors connexion.
 // Changer VERSION à chaque mise à jour du site pour forcer le rafraîchissement du cache.
-const VERSION = 'proforma-v2';
+const VERSION = 'proforma-v3';
 const FILES = [
   './',
   'index.html',
   'style.css',
   'app.js',
   'logo.png',
-  'stamp.png',
   'lib/html2pdf.bundle.min.js',
   'manifest.webmanifest',
   'icons/icon-180.png',
