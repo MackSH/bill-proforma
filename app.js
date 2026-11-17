@@ -183,6 +183,7 @@
     text('pv_client', doc.client);
     text('pv_attention', doc.attention);
     text('pv_number', doc.number);
+    text('dateDisplay', frDate(doc.date) || 'Choisir une date');
     text('pv_footer', company.footer);
 
     // Encadré véhicule (la plaque n'apparaît que si elle est remplie)
@@ -484,6 +485,8 @@
     doc[f] = $(f).value;
     update();
   }));
+  // Ouvrir le calendrier au clic, même sur ordinateur
+  $('date').addEventListener('click', (e) => { try { e.target.showPicker(); } catch {} });
   $('date').addEventListener('change', () => {
     // Si le numéro suit le format auto, l'adapter à la nouvelle date
     if (/^Bill-G-\d{8}-\d+$/.test(doc.number || '') && !doc.id) { doc.number = nextNumber(doc.date); $('number').value = doc.number; update(); }

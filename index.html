@@ -56,7 +56,12 @@
     <summary>Client &amp; véhicule</summary>
     <div class="grid2">
       <label>N° Proforma <input id="number"></label>
-      <label>Date <input id="date" type="date"></label>
+      <label>Date
+        <span class="date-field">
+          <span class="date-display" id="dateDisplay"></span>
+          <input id="date" type="date" aria-label="Date">
+        </span>
+      </label>
     </div>
     <label>Client <input id="client"></label>
     <label>ATTN (à l'attention de) <input id="attention"></label>
