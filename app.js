@@ -138,7 +138,7 @@
         <td><input inputmode="decimal" data-k="qty" value="${it.qty ?? ''}"></td>
         <td><input data-k="desc"></td>
         <td><input inputmode="decimal" data-k="price" value="${it.price ?? ''}"></td>
-        <td><button type="button" class="del" title="Supprimer">✕</button></td>`;
+        <td><button type="button" class="del" title="Supprimer">×</button></td>`;
       tr.querySelector('[data-k=desc]').value = it.desc || '';
       tr.querySelectorAll('input').forEach((inp) => {
         inp.addEventListener('input', () => {
@@ -272,7 +272,7 @@
       span.querySelector('small').textContent = `${frDate(p.date)} · ${p.client || ''} · ${p.plaque || ''}`;
       const open = document.createElement('button'); open.textContent = 'Ouvrir';
       const dup = document.createElement('button'); dup.textContent = 'Copier'; dup.title = 'Dupliquer comme nouvelle proforma';
-      const del = document.createElement('button'); del.textContent = '✕'; del.title = 'Supprimer';
+      const del = document.createElement('button'); del.textContent = '×'; del.title = 'Supprimer';
       open.onclick = () => { doc = clone(p); fillForm(); update(); };
       dup.onclick = () => {
         doc = clone(p); doc.id = null; doc.date = todayISO(); doc.number = nextNumber(doc.date);
@@ -294,7 +294,7 @@
     doc.savedAt = Date.now();
     const i = list.findIndex((x) => x.id === doc.id);
     if (i >= 0) list[i] = clone(doc); else list.push(clone(doc));
-    if (store(LS_SAVED, list)) toast('Proforma enregistrée ✔'); else alert("Impossible d'enregistrer (stockage plein ?)");
+    if (store(LS_SAVED, list)) toast('Proforma enregistrée'); else alert("Impossible d'enregistrer (stockage plein ?)");
     store(LS_DRAFT, doc);
     renderSaved();
   }
@@ -515,7 +515,7 @@
         const url = c.toDataURL(file.type === 'image/jpeg' ? 'image/jpeg' : 'image/png', 0.92);
         if (!store(LS_LOGO, url)) alert('Image trop lourde pour être mémorisée, essayez une image plus petite.');
         applyLogo();
-        toast('Logo mis à jour ✔');
+        toast('Logo mis à jour');
       };
       img.src = reader.result;
     };
@@ -551,7 +551,7 @@
         store(LS_SAVED, list);
       }
       applyLogo(); fillForm(); update(); renderSaved();
-      toast('Sauvegarde importée ✔');
+      toast('Sauvegarde importée');
     }).catch(() => alert('Fichier invalide.'));
     e.target.value = '';
   });
@@ -582,7 +582,7 @@
 
   async function checkOfflineReady() {
     if (!('serviceWorker' in navigator) || !window.caches) {
-      setOffStatus("⚠️ Ce navigateur ne permet pas le mode hors ligne. Ouvrez le site dans Safari (iPhone) ou Chrome (Android).", 'warn');
+      setOffStatus("Ce navigateur ne permet pas le mode hors ligne. Ouvrez le site dans Safari (iPhone) ou Chrome (Android).", 'warn');
       return false;
     }
     let n = 0;
@@ -590,23 +590,23 @@
       if (await caches.match(new URL(f, location.href).href, { ignoreSearch: true })) n++;
     }
     if (n === OFFLINE_FILES.length) {
-      setOffStatus(isStandalone ? '✅ Application installée — fonctionne sans réseau' : '✅ Prêt hors ligne sur cet appareil', 'ok');
+      setOffStatus(isStandalone ? 'Application installée — fonctionne sans réseau' : 'Prêt hors ligne sur cet appareil', 'ok');
       return true;
     }
     setOffStatus(navigator.onLine
-      ? `⏳ Préparation du mode hors ligne… (${n}/${OFFLINE_FILES.length})`
-      : '⚠️ Pas encore prêt hors ligne : ouvrez le site une fois avec internet.', navigator.onLine ? '' : 'warn');
+      ? `Préparation du mode hors ligne… (${n}/${OFFLINE_FILES.length})`
+      : 'Pas encore prêt hors ligne : ouvrez le site une fois avec internet.', navigator.onLine ? '' : 'warn');
     return false;
   }
 
   function helpHtml() {
-    const after = `<p><b>Important :</b> après l'installation, ouvrez l'application <b>une fois avec internet</b> (attendez « ✅ Prêt hors ligne »). Ensuite elle s'ouvre et fonctionne sans réseau, depuis son icône.</p>`;
+    const after = `<p><b>Important :</b> après l'installation, ouvrez l'application <b>une fois avec internet</b> (attendez « Prêt hors ligne »). Ensuite elle s'ouvre et fonctionne sans réseau, depuis son icône.</p>`;
     if (inAppBrowser) {
-      return `<p>⚠️ Vous êtes dans le navigateur d'une autre application (WhatsApp, Facebook…). Le mode hors ligne n'y fonctionne pas.</p>
+      return `<p>Vous êtes dans le navigateur d'une autre application (WhatsApp, Facebook…). Le mode hors ligne n'y fonctionne pas.</p>
         <p>Ouvrez ce lien dans <b>${isIOS ? 'Safari' : 'Chrome'}</b> : menu ⋯ → « Ouvrir dans ${isIOS ? 'Safari' : 'le navigateur'} ».</p>`;
     }
     if (isIOS) {
-      return (iosNotSafari ? `<p>⚠️ Sur iPhone, utilisez <b>Safari</b> pour installer l'application.</p>` : '') + `
+      return (iosNotSafari ? `<p>Sur iPhone, utilisez <b>Safari</b> pour installer l'application.</p>` : '') + `
         <ol>
           <li>Dans <b>Safari</b>, touchez le bouton <b>Partager</b> (carré avec une flèche ↑).</li>
           <li>Choisissez <b>« Sur l'écran d'accueil »</b>, puis <b>Ajouter</b>.</li>
@@ -618,7 +618,7 @@
         <li>Dans <b>Chrome</b>, touchez <b>« Installer l'application »</b> ci-dessus, ou le menu <b>⋮</b> → <b>« Installer l'application »</b> / <b>« Ajouter à l'écran d'accueil »</b>.</li>
         <li>Ouvrez l'icône <b>Proforma</b> depuis l'écran d'accueil.</li>
       </ol>${after}
-      <p>Même sans installer, la page déjà ouverte dans Chrome reste utilisable sans réseau une fois « ✅ Prêt hors ligne » affiché.</p>`;
+      <p>Même sans installer, la page déjà ouverte dans Chrome reste utilisable sans réseau une fois « Prêt hors ligne » affiché.</p>`;
   }
 
   function toggleHelp(force) {
@@ -628,7 +628,7 @@
   }
 
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvent = e; });
-  window.addEventListener('appinstalled', () => { installEvent = null; $('btnInstall').hidden = true; toast('Application installée ✔'); });
+  window.addEventListener('appinstalled', () => { installEvent = null; $('btnInstall').hidden = true; toast('Application installée'); });
   $('btnInstall').addEventListener('click', async () => {
     if (installEvent) {
       installEvent.prompt();
